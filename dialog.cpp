@@ -124,7 +124,7 @@ bool Dialog::renewFile(const QString& filePath)
         else
             file.seek(0);
         ba = file.readLine();
-        if (ba != "/*\n") {
+        if (ba != "/*\n" && ba != "/*\r\n") {
             content = ba;
         }
         else {
