@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (C) 2020 popkc(popkcer at gmail dot com)
+Copyright (C) 2020-2024 popkc(popkc at 163 dot com)
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <QDialog>
 #include <QDir>
+#include <QRegularExpression>
 #include <QSettings>
 #include <QStringList>
 
@@ -34,7 +35,7 @@ class Dialog : public QDialog
 public:
     QSettings settings;
 
-    Dialog(QWidget* parent = nullptr);
+    Dialog(QWidget *parent = nullptr);
     ~Dialog();
 
 private slots:
@@ -45,12 +46,13 @@ private slots:
     void on_pushButtonDefault_clicked();
 
 private:
-    Ui::Dialog* ui;
+    Ui::Dialog *ui;
     size_t totalCount, renewCount;
     QStringList suffixes;
+    QRegularExpression regExcept;
 
-    void renewDir(const QDir& dir);
-    bool renewFile(const QString& filePath);
-    bool writeFile(QFile& file, QByteArray& content, bool utf8Bom);
+    void renewDir(const QDir &dir);
+    bool renewFile(const QString &filePath);
+    bool writeFile(QFile &file, QByteArray &content, bool utf8Bom);
 };
 #endif // DIALOG_H

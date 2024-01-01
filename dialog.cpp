@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (C) 2020 popkc(popkcer at gmail dot com)
+Copyright (C) 2020-2024 popkc(popkc at 163 dot com)
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -16,6 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "dialog.h"
 #include "ui_dialog.h"
 #include <QDate>
+#include <QDebug>
 #include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -33,8 +34,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                         "\nYou should have received a copy of the GNU General Public License"    \
                         "\nalong with this program.  If not, see <https://www.gnu.org/licenses/>."
 #define DEFAULT_SUFFIX "*.c;*.cpp;*.h;*.hpp"
+#define DEFAULT_EXCEPT "^(3rdparty|external)"
 
-Dialog::Dialog(QWidget* parent)
+Dialog::Dialog(QWidget *parent)
     : QDialog(parent)
     , settings("popkc", "addlicense")
     , ui(new Ui::Dialog)
@@ -46,6 +48,7 @@ Dialog::Dialog(QWidget* parent)
     QString s = QString::number(year);
     ui->lineEditYear->setText(settings.value("year", s).toString());
     ui->lineEditSuffix->setText(settings.value("suffix", DEFAULT_SUFFIX).toString());
+    ui->lineEditExcept->setText(settings.value("except", DEFAULT_EXCEPT).toString());
     ui->lineEditCopyright->setText(settings.value("copyright", "popkc(popkc at 163.com)").toString());
     ui->plainTextEditLicense->setPlainText(settings.value("license", DEFAULT_LICENSE).toString());
 }
@@ -70,6 +73,7 @@ void Dialog::on_pushButtonRenew_clicked()
     settings.setValue("suffix", ui->lineEditSuffix->text());
     settings.setValue("copyright", ui->lineEditCopyright->text());
     settings.setValue("license", ui->plainTextEditLicense->toPlainText());
+    settings.setValue("except", ui->lineEditExcept->text());
 
     QDir dir(ui->lineEditDir->text());
     if (!dir.exists()) {
@@ -83,6 +87,8 @@ void Dialog::on_pushButtonRenew_clicked()
         return;
     }
 
+    regExcept = QRegularExpression(ui->lineEditExcept->text());
+
     totalCount = 0;
     renewCount = 0;
     renewDir(dir);
@@ -92,22 +98,28 @@ void Dialog::on_pushButtonRenew_clicked()
     QMessageBox::about(this, "更新完成", s);
 }
 
-void Dialog::renewDir(const QDir& dir)
+void Dialog::renewDir(const QDir &dir)
 {
     auto fel = dir.entryInfoList(suffixes, QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Files | QDir::Readable | QDir::Writable);
-    for (auto& fe : fel) {
+    for (auto &fe : fel) {
+        if (regExcept.isValid() && !ui->lineEditExcept->text().isEmpty()) {
+            if (regExcept.match(fe.fileName()).hasMatch())
+                continue;
+        }
+
         if (fe.isDir()) {
             renewDir(fe.filePath());
         }
         else if (fe.isFile()) {
             totalCount++;
+            qDebug() << fe.filePath();
             if (renewFile(fe.filePath()))
                 renewCount++;
         }
     }
 }
 
-bool Dialog::renewFile(const QString& filePath)
+bool Dialog::renewFile(const QString &filePath)
 {
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly))
@@ -150,7 +162,7 @@ bool Dialog::renewFile(const QString& filePath)
     return writeFile(file, content, utf8Bom);
 }
 
-bool Dialog::writeFile(QFile& file, QByteArray& content, bool utf8Bom)
+bool Dialog::writeFile(QFile &file, QByteArray &content, bool utf8Bom)
 {
     if (!file.open(QIODevice::WriteOnly))
         return false;
@@ -175,4 +187,5 @@ void Dialog::on_pushButtonDefault_clicked()
     int year = QDate::currentDate().year();
     QString s = QString::number(year);
     ui->lineEditYear->setText(s);
+    ui->lineEditExcept->setText(DEFAULT_EXCEPT);
 }

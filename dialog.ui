@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>633</width>
-    <height>472</height>
+    <height>487</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -46,6 +46,20 @@
      </item>
      <item>
       <widget class="QLineEdit" name="lineEditSuffix"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <item>
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>文件名和目录名排除（正则）：</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEditExcept"/>
      </item>
     </layout>
    </item>
